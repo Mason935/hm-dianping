@@ -101,6 +101,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
         stringRedisTemplate.expire(tokenKey, LOGIN_USER_TTL, TimeUnit.MINUTES);
 
         //返回tokrn
+        //当用户第一次登录后，服务器生成一个Token并将此Token返回给客户端，
+        // 以后客户端只需带上这个Token前来请求数据即可，无需再次带上用户名和密码。
         return Result.ok(token);
     }
 
