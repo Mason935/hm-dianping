@@ -1,10 +1,7 @@
 package com.hmdp.service.impl;
 
 import cn.hutool.core.util.StrUtil;
-import cn.hutool.json.JSON;
-import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
-import com.hmdp.dto.Result;
 import com.hmdp.entity.ShopType;
 import com.hmdp.mapper.ShopTypeMapper;
 import com.hmdp.service.IShopTypeService;
@@ -14,12 +11,7 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import java.util.Collection;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
-
 import static com.hmdp.utils.RedisConstants.CACHE_SHOPTYPE_KEY;
 
 /**
@@ -38,35 +30,35 @@ public class ShopTypeServiceImpl extends ServiceImpl<ShopTypeMapper, ShopType> i
     private StringRedisTemplate stringRedisTemplate;
 
 //    使用 redis-string 缓存
-//    @Override
-//    public List<ShopType> queryTypeList() {
-//        /**
-//         * 店铺类型缓存
-//         * 1. 从redis查询店铺类型缓存
-//         * 2. 命中，返回店铺类型信息
-//         * 3. 未命中，数据库查询店铺类型信息
-//         *  3.1 将店铺类型数据写入redis，返回店铺类型信息
-//         */
-//        //1. 根据Key值获取Redis中的缓存值
-//        String key = CACHE_SHOPTYPE_KEY;
-//        String s = stringRedisTemplate.opsForValue().get(key);
-//        log.info("redis中获取到的数据是："+s);
-//        //2. 判断是否有值，有值则返回
-//        if (StrUtil.isNotBlank(s)) {
-//            //JSONUtil.toList: 将json数组/json字符串 => 相应的带对象的数组
-//            List<ShopType> shopTypes = JSONUtil.toList(s, ShopType.class);
-//            return shopTypes;
-//        }
-//        //3. 没有值则查询数据库
-//        List<ShopType> shopTypeList = list();
-//        if (null == shopTypeList) {
-//            return null;
-//        }
-//        //4. 将查询到的数据缓存到redis中
-//        stringRedisTemplate.opsForValue().set(CACHE_SHOPTYPE_KEY,JSONUtil.toJsonStr(shopTypeList));
-//        
-//        return shopTypeList;
-//    }
+@Override
+public List<ShopType> queryTypeList() {
+    /**
+     * 店铺类型缓存
+     * 1. 从redis查询店铺类型缓存
+     * 2. 命中，返回店铺类型信息
+     * 3. 未命中，数据库查询店铺类型信息
+     *  3.1 将店铺类型数据写入redis，返回店铺类型信息
+     */
+    //1. 根据Key值获取Redis中的缓存值
+    String key = CACHE_SHOPTYPE_KEY;
+    String s = stringRedisTemplate.opsForValue().get(key);
+    log.info("redis中获取到的数据是：" + s);
+    //2. 判断是否有值，有值则返回
+    if (StrUtil.isNotBlank(s)) {
+        //JSONUtil.toList: 将json数组/json字符串 => 相应的带对象的数组
+        List<ShopType> shopTypes = JSONUtil.toList(s, ShopType.class);
+        return shopTypes;
+    }
+    //3. 没有值则查询数据库
+    List<ShopType> shopTypeList = list();
+    if (null == shopTypeList) {
+        return null;
+    }
+    //4. 将查询到的数据缓存到redis中
+    stringRedisTemplate.opsForValue().set(CACHE_SHOPTYPE_KEY, JSONUtil.toJsonStr(shopTypeList));
+
+    return shopTypeList;
+}
 
     //使用redis-list 缓存
 //    @Override
@@ -139,22 +131,22 @@ public class ShopTypeServiceImpl extends ServiceImpl<ShopTypeMapper, ShopType> i
 //    }
 
     //使用redis-zset缓存
-    @Override
-    public List<ShopType> queryTypeList() {
-        String key = CACHE_SHOPTYPE_KEY;
-        Set<String> range = stringRedisTemplate.opsForZSet().range(key, 0, -1);
-        log.info("Redis中获取到的数据是" + range);
-        if (!range.isEmpty()) {
-            List<ShopType> collect = range.stream().map(e -> JSONUtil.toBean(e, ShopType.class)).collect(Collectors.toList());
-            return collect;
-        }
-        List<ShopType> list = list();
-        if (null == list) {
-            return null;
-        }
-        list.forEach(e -> stringRedisTemplate.opsForZSet().add(key, JSONUtil.toJsonStr(e), e.getSort()));
-
-        return list;
-    }
+//    @Override
+//    public List<ShopType> queryTypeList() {
+//        String key = CACHE_SHOPTYPE_KEY;
+//        Set<String> range = stringRedisTemplate.opsForZSet().range(key, 0, -1);
+//        log.info("Redis中获取到的数据是" + range);
+//        if (!range.isEmpty()) {
+//            List<ShopType> collect = range.stream().map(e -> JSONUtil.toBean(e, ShopType.class)).collect(Collectors.toList());
+//            return collect;
+//        }
+//        List<ShopType> list = list();
+//        if (null == list) {
+//            return null;
+//        }
+//        list.forEach(e -> stringRedisTemplate.opsForZSet().add(key, JSONUtil.toJsonStr(e), e.getSort()));
+//
+//        return list;
+//    }
 
 }
